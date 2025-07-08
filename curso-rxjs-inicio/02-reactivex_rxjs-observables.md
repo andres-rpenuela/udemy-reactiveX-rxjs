@@ -64,7 +64,7 @@ obs$.subscribe(resp => console.log(resp));
 
 - El **Observable** contiene internamente un `subscriber` que emite los datos usando `subscriber.next(...)`.
 - Puedes **suscribirte** al observable usando `.subscribe()`.
-- El contendio del `.subcribe()`, es una subcripcion (`subcription`)
+- El contendio del `.subcribe()`, es un un observer y el valor devuelto al `.subcribe()`, es una  subcripción (`subcription`).
 
 ```ts
 // Suscripción al observable
