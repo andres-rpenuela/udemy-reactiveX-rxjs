@@ -98,3 +98,89 @@ Fin del obs$
 
 --- 
 
+##  `fromEvent` en RxJS
+La función `fromEvent()` de RxJS permite **crear un observable a partir de eventos emitidos por objetos que implementan `EventTarget`**, como `document`, `window`, o cualquier elemento del DOM.
+
+---
+
+### 📌 Sintaxis básica
+
+```ts
+fromEvent<T>(target: EventTarget, eventName: string): Observable<T>
+```
+
+- `T`: Tipo del evento emitido (por ejemplo: `MouseEvent`, `KeyboardEvent`, `Event`…).
+- `target`: Elemento que emitirá el evento (`document`, `button`, `input`, etc.).
+- `eventName`: Nombre del evento a escuchar (`'click'`, `'keyup'`, `'input'`, etc.).
+
+---
+
+### ✅ Código completo comentado
+
+```ts
+import { fromEvent, Observer } from 'rxjs';
+
+/**
+ * Observador para manejar valores emitidos
+ */
+const observer: Observer<any> = {
+    next: value => console.log('siguiente [next]: ', value),
+    error: error => console.error('error [obs]:', error),
+    complete: () => console.warn('completado [obs]')
+};
+
+/**
+ * Observable que escucha clicks en el documento
+ * Tipado como MouseEvent para acceder a propiedades como x, y, etc.
+ */
+const src1$ = fromEvent<MouseEvent>(document, 'click');
+
+/**
+ * Observable que escucha teclas presionadas en el documento
+ * Tipado como KeyboardEvent para acceder a propiedades como key, code, etc.
+ */
+const src2$ = fromEvent<KeyboardEvent>(document, 'keyup');
+
+/**
+ * Subcripción al observable de clics
+ * Extrae las coordenadas del evento (x, y) mediante desestructuración
+ */
+const subscription3 = src1$.subscribe(({ x, y }) =>
+    console.log('Click en:', x, y)
+);
+
+/**
+ * Subcripción al observable de teclado
+ * Imprime la tecla presionada
+ */
+const subscription4 = src2$.subscribe(event =>
+    console.log('Tecla presionada:', event.key)
+);
+```
+
+---
+
+### 🎯 Ventajas de usar `fromEvent()`
+
+- Facilita trabajar con eventos del DOM como observables.
+- Se puede aplicar cualquier operador RxJS (`filter`, `debounceTime`, `map`, etc.).
+- Tipar el evento permite acceder directamente a sus propiedades con ayuda de TypeScript.
+
+---
+
+### 🔎 Tipos de eventos comunes
+
+| Evento DOM   | Tipo de evento         |
+|--------------|------------------------|
+| `'click'`    | `MouseEvent`           |
+| `'keyup'`    | `KeyboardEvent`        |
+| `'scroll'`   | `Event` / `UIEvent`    |
+| `'input'`    | `InputEvent` / `Event` |
+| `'submit'`   | `SubmitEvent` / `Event`|
+
+---
+
+### 🧠 Nota importante
+
+- El observable `fromEvent()` **no se completa por sí solo**. Debes manejar el `unsubscribe()` si es necesario.
+- Muy útil en Angular o React para escuchar eventos de componentes y luego cancelarlos fácilmente.
