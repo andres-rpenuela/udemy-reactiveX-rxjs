@@ -331,3 +331,98 @@ setTimeout(() => {
   sub.unsubscribe(); // Aquí sí se limpia el setInterval
 }, 5000);
 ```
+
+---
+
+## 🔄 Subject en RxJS
+
+### ¿Qué es un `Subject`?
+Un `Subject` en RxJS **combina** dos roles:
+
+- ✅ **Es un `Observable`** (se pueden suscribir a él).
+- ✅ **Es también un `Observer`** (puede emitir valores con `.next()`).
+
+> En resumen: puede recibir valores (como observer) y emitirlos a sus suscriptores (como observable).
+
+---
+
+### 📌 Casos de uso principales
+
+- Para **compartir** una fuente de datos entre múltiples suscriptores.
+- Para convertir un **Cold Observable en Hot**.
+- Para **emitir valores manualmente** desde el exterior del observable.
+
+---
+
+## 🧪 Ejemplo explicado paso a paso
+
+### Código base (comentado):
+
+```ts
+const interval$ : Observable<number> = new Observable( (subscriber : Subscriber<number>)  => {
+    const intervalId = setInterval(() => {
+        subscriber.next(Math.random()); // Emite un valor aleatorio cada segundo
+    }, 1000);
+
+    // Función de limpieza
+    return () => {
+        clearInterval(intervalId);
+        console.log('Intervalo destruido');
+    }
+});
+```
+
+```ts
+const subject$ : Subject<number> = new Subject();
+
+// El Subject se suscribe al Observable: ahora actúa como puente
+const subjectSubscription = interval$.subscribe(subject$);
+
+// Múltiples suscripciones al Subject (todos reciben el mismo valor)
+const subs3: Subscription = subject$.subscribe(observer);
+const subs4: Subscription = subject$.subscribe(observer);
+```
+
+```ts
+setTimeout(() => {
+    subject$.next(10);        // Emite valor manual (HOT Observable)
+    subject$.complete();      // Notifica a todos los observers que se ha completado
+    subjectSubscription.unsubscribe(); // Limpia el Observable original (interval$)
+}, 3000);
+```
+
+---
+
+### 📘 Conceptos clave usados aquí
+
+#### 🔹 Cold Observable
+- Se crea una **nueva ejecución** para cada suscripción.
+- Cada observer **recibe valores independientes**.
+
+#### 🔹 Hot Observable (al usar `Subject`)
+- La fuente de datos es **compartida** entre todos los suscriptores.
+- Todos reciben **los mismos valores**, emitidos por el `Subject`.
+
+#### 🔹 Ventajas del Subject
+- Puedes **inyectar valores externos** manualmente con `.next()`.
+- Permite **centralizar** la emisión de datos hacia múltiples observadores.
+
+---
+
+### 🧩 Tipos de Subjects
+
+| Tipo              | Descripción breve                                                   |
+|-------------------|----------------------------------------------------------------------|
+| `Subject`         | Emite todo a partir del momento de la suscripción                   |
+| `BehaviorSubject` | Requiere valor inicial, y **emite el último valor a nuevos subs**   |
+| `ReplaySubject`   | Puede reenviar múltiples valores pasados a nuevos subs              |
+| `AsyncSubject`    | Solo emite el **último valor al completarse**                       |
+
+---
+
+### 📝 Resumen de puntos clave
+
+- 🔄 `Subject` es **multicast**: múltiples subscriptores reciben los **mismos datos**.
+- 🔥 Convierte `Cold Observables` en `Hot`.
+- 👂 Puedes forzar emisiones externas con `.next()`, `.complete()`, `.error()`.
+- 🧹 Para que se ejecute la limpieza del observable original (`interval$`), se debe hacer `unsubscribe()` del `subjectSubscription`.
