@@ -184,3 +184,86 @@ const subscription4 = src2$.subscribe(event =>
 
 - El observable `fromEvent()` **no se completa por sí solo**. Debes manejar el `unsubscribe()` si es necesario.
 - Muy útil en Angular o React para escuchar eventos de componentes y luego cancelarlos fácilmente.
+
+---
+Aquí tienes una versión organizada y comentada de tus apuntes en **Markdown**, con correcciones gramaticales y explicación detallada del código:
+
+---
+
+## Función `range` – RxJS
+
+La función `range` de RxJS genera un **Observable sincrónico** que emite una secuencia de números dentro de un intervalo.
+
+### Sintaxis
+
+```ts
+range(inicio?, cantidad, scheduler?)
+```
+
+* **inicio**: Número desde donde comenzará la secuencia (por defecto `0` si no se especifica).
+* **cantidad**: Número total de elementos a emitir.
+* **scheduler (opcional)**: Si se especifica un scheduler (por ejemplo `asyncScheduler`), la emisión se vuelve **asíncrona**.
+
+---
+
+### Características
+
+* Si no se indica el valor inicial, comienza desde `0`.
+* Por defecto es **sincrónica**.
+* Puede convertirse en **asíncrona** usando un `Scheduler` como `asyncScheduler`.
+
+---
+
+### Diagrama de Mármol (Marble Diagram)
+
+```text
+range(1, 5)
+Salida: ---[1][2][3][4][5]-|---->
+```
+
+---
+
+### Ejemplo en Código
+
+```ts
+import { asyncScheduler, range } from 'rxjs';
+
+// Ejemplo 1: Observable sincrónico desde 1, con 5 elementos
+// const src$ = range(1, 5);
+
+// Ejemplo 2: Observable desde -5, con 5 elementos
+// const src$ = range(-5, 5);
+
+// Ejemplo 3: Solo se indica la cantidad, empieza desde 0
+// const src$ = range(10);
+
+// Ejemplo 4: Conversión a asíncrono con asyncScheduler
+const src$ = range(-5, 5, asyncScheduler);
+
+// Mostrar flujo de ejecución
+console.log('inicio');
+
+// Suscripción al observable
+src$.subscribe(console.log);
+
+console.log('fin');
+```
+
+---
+
+#### Comentarios sobre el Código
+
+* `console.log('inicio')` y `console.log('fin')` sirven para demostrar **cuándo** se ejecutan las emisiones del Observable.
+* Como se usa `asyncScheduler`, la emisión de valores se retrasa hasta el siguiente ciclo del event loop, por eso veremos:
+
+  ```
+  inicio
+  fin
+  -5
+  -4
+  -3
+  -2
+  -1
+  ```
+
+---
