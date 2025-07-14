@@ -568,3 +568,156 @@ asyncScheduler.schedule(() => subs.unsubscribe(), 6000);
 * Puedes anidar y cancelar tareas de forma elegante.
 
 ---
+
+Claro, aquí tienes **apuntes ampliados, explicaciones detalladas y comentarios** sobre el uso de `from` y `of` en RxJS, basados en documentación oficial y buenas prácticas.
+
+---
+
+### 🧠 **Mas ejemplos, `from` vs `of` en RxJS**
+
+En RxJS, tanto `from` como `of` crean **Observables**, pero **su comportamiento difiere según el tipo de entrada**:
+
+#### ✅ `of(...)`
+
+* **Toma los argumentos tal cual** y los emite como una **única secuencia de emisiones**.
+* No descompone arrays, strings, etc., a menos que se desestructuren manualmente con `...`.
+
+```ts
+of(1, 2, 3)          // Emite: 1, 2, 3
+of([1, 2, 3])        // Emite: [1, 2, 3] (un solo valor)
+of(...[1, 2, 3])     // Emite: 1, 2, 3
+```
+
+---
+
+#### ✅ `from(...)`
+
+* Convierte casi **cualquier input iterable o tipo asíncrono (como Promesas)** en una secuencia observable.
+* **Descompone automáticamente** arrays, strings, iterables, promises...
+
+```ts
+from([1, 2, 3])     // Emite: 1, 2, 3
+from('abc')         // Emite: 'a', 'b', 'c'
+from(Promise)       // Emite valor resuelto de la promesa
+```
+
+---
+
+### 🧾 Código y Explicación Línea por Línea
+
+```ts
+import { from, of, Observer } from "rxjs";
+```
+
+#### 🔍 Se define un `observer`
+
+```ts
+const observer: Observer<any> = {
+    next: (value) => console.log('next:', value),
+    error: (err) => console.error(err),
+    complete: () => console.warn('Observable completed')
+};
+```
+
+Este `observer` se usa para observar cualquier flujo.
+
+---
+
+### 🧪 1. `from` vs `of` con **Arrays**
+
+```ts
+// from convierte cada valor del array en emisiones individuales
+from([1,2,3,4,5]).subscribe(observer);
+// Emite: next: 1, next: 2, ..., complete
+
+// of emite el array como un único valor
+of([1,2,3,4,5]).subscribe(observer);
+// Emite: next: [1, 2, 3, 4, 5], complete
+
+// of con spread opera como from
+of(...[1,2,3,4,5]).subscribe(observer);
+// Emite: next: 1, next: 2, ..., complete
+```
+
+---
+
+### 🧪 2. `from` vs `of` con **Strings**
+
+```ts
+from('Andres').subscribe(observer);
+// Emite: 'A', 'n', 'd', 'r', 'e', 's'
+
+of('Andres').subscribe(observer);
+// Emite: 'Andres'
+
+of(...'Andres').subscribe(observer);
+// Emite: 'A', 'n', 'd', 'r', 'e', 's'
+```
+
+📝 `from(string)` lo trata como un iterable de caracteres.
+
+---
+
+### 🧪 3. `from` con **Promesas**
+
+```ts
+const source_from$ = from(fetch('https://api.github.com/users/klerith'));
+```
+
+⚠️ La `fetch` devuelve una **Promesa** que se resuelve con una `Response`.
+
+```ts
+source_from$.subscribe(async (resp) => {
+    console.log(resp);
+    console.log(resp.ok);
+    
+    // Obteneindo los datos
+    const data = await resp.json(); // Es otra promesa, por eso el uso de asyunc - await
+    console.log(data);
+});
+```
+
+✅ El `from()` se resuelve **solo una vez** (como un `then`), y el valor emitido es el resultado de la promesa.
+
+---
+
+### 🧪 4. `from` con **Generadores**
+
+```ts
+function* miGenerador() {
+    yield 1;
+    yield 2;
+    yield 3;
+    yield 4;
+    yield 5;
+}
+
+const miIterable = miGenerador();
+
+from(miIterable).subscribe(observer);
+// Emite: 1, 2, 3, 4, 5
+```
+
+🔁 Los generadores son **iterables**, y `from` puede recorrerlos y emitir cada valor.
+
+---
+
+### 📘 Comparativa Oficial (`rxjs.dev`)
+
+| Característica           | `of(...)`                         | `from(...)`                           |
+| ------------------------ | --------------------------------- | ------------------------------------- |
+| Argumentos múltiples     | ✅ Emite cada argumento como valor | ❌ Solo acepta un input iterable/async |
+| Array como argumento     | 🔴 Emite el array completo        | ✅ Emite cada elemento                 |
+| String                   | 🔴 Emite string completo          | ✅ Emite cada letra                    |
+| Promise                  | 🔴 Emite la promesa como valor    | ✅ Emite su resultado (resuelto)       |
+| Iterable (Set, Map, etc) | 🔴 No lo descompone               | ✅ Sí                                  |
+
+---
+
+### ✅ Conclusión
+
+* Usa `of(...)` cuando quieres emitir valores tal cual.
+* Usa `from(...)` cuando trabajas con **arrays, strings, promesas, iterables** o cualquier fuente que deba descomponerse.
+* En `from(fetch(...))`, lo emitido es la **promesa resuelta**, y debes usar `await` para extraer el cuerpo (`.json()`).
+
+---
