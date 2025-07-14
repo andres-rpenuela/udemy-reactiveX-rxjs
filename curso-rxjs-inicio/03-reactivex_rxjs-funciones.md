@@ -464,4 +464,107 @@ console.log('fin');
 
 📚 Más info en: [RxJS - timer](https://rxjs.dev/api/index/function/timer) | [RxJS - interval](https://rxjs.dev/api/index/function/interval)
 
+---
+
+## Funcion RxJS - `aysncScheduler`
+
+
+El `asyncScheduler` de RxJS es una herramienta avanzada que **simula el comportamiento de `setTimeout` y `setInterval`**, pero con el poder de RxJS y su sistema de planificación.
+
+> Crea una subcripción (_el resutlado de un .subscribe()_ )
+
+#### 📌 ¿Qué es un Scheduler?
+
+Un `Scheduler` en RxJS gestiona **cuándo** se ejecuta una tarea. `asyncScheduler` utiliza la **cola de tareas del navegador**, como lo haría `setTimeout`.
+
+---
+
+### 🔹 Ejecutar una función con retardo (como `setTimeout`)
+
+```ts
+import { asyncScheduler } from 'rxjs';
+
+const saludar = () => console.log('Hola Mundo.');
+const saludar2 = nombre => console.log(`Hola ${nombre}`);
+const saludar3 = p => console.log(`Hola ${p.name} & ${p.surname}`);
 ```
+
+#### ✅ Ejecución retrasada:
+
+```ts
+asyncScheduler.schedule(saludar2, 2000, 'Andres');
+// Salida después de 2 segundos: Hola Andres
+
+asyncScheduler.schedule(saludar3, 2000, { name: 'Andres', surname: 'Ruiz' });
+// Salida después de 2 segundos: Hola Andres & Ruiz
+```
+
+#### ❌ No permitido:
+
+```ts
+// asyncScheduler(saludar3, 2000, 'Andres', 'Ruiz'); ❌
+// Solo se permite **un** argumento como estado inicial
+```
+
+> El tercer parámetro es el `state` (estado inicial), que puede ser un número, string, objeto, etc.
+
+---
+
+### 🔁 Simular `setInterval` con `asyncScheduler.schedule`
+
+```ts
+const subs = asyncScheduler.schedule(function(state) {
+  console.log('state:', state);
+  this.schedule(state + 1, 1000); // reprograma con nuevo estado
+}, 3000, 0);
+```
+
+#### 🧠 Explicación:
+
+* A los 3 segundos (delay = 3000) se ejecuta esta función.
+* Muestra el `state` actual por consola.
+* Se **reprograma a sí misma** (como un `setInterval`) aumentando el `state`.
+* Se llama a sí misma cada 1 segundo.
+
+---
+
+### ❌ Cancelar la suscripción (como `clearInterval`)
+
+Hay 2 formas de detener esta repetición:
+
+#### ✅ Opción A: Usar `setTimeout`
+
+```ts
+setTimeout(() => {
+  subs.unsubscribe(); // Detiene la ejecución
+}, 6000);
+```
+
+#### ✅ Opción B: Usar `asyncScheduler` para cancelar
+
+```ts
+asyncScheduler.schedule(() => subs.unsubscribe(), 6000);
+```
+
+> Esta es la forma **reactiva y elegante** de cancelar usando el propio `Scheduler`.
+
+---
+
+### 🧩 Resumen de funciones `asyncScheduler`
+
+| Función                      | Equivalente JS                   | Explicación                                          |
+| ---------------------------- | -------------------------------- | ---------------------------------------------------- |
+| `schedule(fn, delay, state)` | `setTimeout`                     | Ejecuta `fn` una vez después de `delay` ms           |
+| `schedule(...)` recursivo    | `setInterval`                    | Se reprograma a sí mismo usando `this.schedule(...)` |
+| `unsubscribe()`              | `clearTimeout` / `clearInterval` | Cancela la ejecución programada                      |
+
+---
+
+### ✅ Conclusión
+
+* `asyncScheduler` permite mayor control sobre la planificación temporal.
+* Ideal cuando trabajas con RxJS y necesitas reemplazar `setTimeout` y `setInterval`.
+* Requiere funciones puras y controladas (no múltiples argumentos, solo `state`).
+* Puedes anidar y cancelar tareas de forma elegante.
+
+---
