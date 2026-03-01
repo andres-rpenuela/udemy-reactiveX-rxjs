@@ -122,6 +122,24 @@ Operan sobre Observables que emiten otros Observables.
 
 ---
 
+### 8. El operador `tap`
+
+El operador **tap** (_antes llamado **do**_) permite **ejecutar efectos secundarios** (_side effects_) en una secuencia de operadores sin modificar el valor que pasa por el Observable.
+
+> ✅ Es útil para **depurar, registrar información (logging)**, o **realizar acciones auxiliares** como mostrar un _spinner_ o una notificación.
+> Elig return de este operador es ignorado
+```ts
+import { tap } from 'rxjs/operators';
+
+observable.pipe(
+  tap(valor => {
+    console.log('Valor recibido:', valor);
+    // return valor; // ignorado
+  })
+).subscribe();
+```
+
+---
 ## 📌 Ejemplo Real con varios operadores
 
 ```ts
@@ -143,6 +161,9 @@ fromEvent(input, 'input').pipe(
 * La transforma en el valor del campo.
 * Filtra textos con más de 2 caracteres.
 * Espera 300ms sin cambios antes de emitir.
+
+---
+
 
 ---
 
